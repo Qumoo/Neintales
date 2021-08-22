@@ -1,0 +1,108 @@
+buildscript {
+    repositories {
+        maven { url = 'https://maven.minecraftforge.net' }
+        mavenCentral()
+    }
+    dependencies {
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '4.1.+', changing: true
+    }
+}
+
+plugins {
+    id 'java'
+    id 'maven-publish'
+    id 'com.github.johnrengelman.shadow' version '6.1.0'
+    id "net.kyori.blossom" version "1.1.0"
+    id 'org.spongepowered.plugin' version '0.9.0'
+}
+apply plugin: 'net.minecraftforge.gradle'
+apply plugin: "com.github.johnrengelman.shadow"
+
+group = 'at.qumo'
+version = '1.0-SNAPSHOT'
+archivesBaseName = 'Neintales'
+
+minecraft {
+    mappings channel: modMcpMappingsChannel, version: modMcpMappingsVersion
+}
+
+[compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
+
+version = modMinecraftVersion + "-" + modVersion
+group = modGroup
+archivesBaseName = modFileName
+
+repositories {
+    mavenCentral()
+    maven { url 'https://jitpack.io' }
+    flatDir {
+        dirs 'libs'
+    }
+    maven {
+        url 'https://repo.extendedclip.com/content/repositories/placeholderapi/'
+    }
+}
+
+blossom {
+    replaceToken '@VERSION@', modVersion
+}
+
+configurations {
+    shadow
+    compile.extendsFrom shadow
+}
+
+dependencies {
+    minecraft "net.minecraftforge:forge:" + modMinecraftVersion + "-" + modForgeVersion
+    compileOnly 'org.spongepowered:spongecommon:1.12.2-7.3.0:dev'
+    implementation 'com.github.rojo8399:PlaceholderAPI:master-SNAPSHOT'
+    implementation ':Magma-7cd4bbd-plugin'
+    implementation 'me.clip:placeholderapi:2.9.2'
+    shadow("org.spongepowered:configurate-extra-kotlin:4.0.0") { transitive = false }
+    shadow 'org.spongepowered:configurate-yaml:4.1.1'
+}
+
+shadowJar {
+    configurations = Arrays.asList(project.configurations.shadow)
+    relocate('org.spongepowered.configurate', 'at.qumo.dependencies.configurate') {
+        exclude 'META-INF', 'META-INF/**'
+    }
+    relocate 'org.yaml.snakeyaml', 'at.qumo.dependencies.snakeyaml'
+    relocate 'io.leangen', 'at.qumo.dependencies'
+
+    archiveClassifier.set("")
+}
+
+jar {
+    manifest {
+        attributes([
+                "Specification-Title"     : modId,
+                "Specification-Vendor"    : modGroup,
+                "Specification-Version"   : "1.0", // We are version 1 of ourselves
+                "Implementation-Title"    : project.name,
+                "Implementation-Version"  : "${archiveVersion}",
+                "Implementation-Vendor"   : modGroup,
+                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+        ])
+    }
+}
+
+reobf {
+    shadowJar {}
+}
+
+processResources{
+    inputs.property 'version', project.version
+
+    from(sourceSets.main.resources.srcDirs) {
+        include 'mods.toml'
+
+        expand 'version': project.version
+    }
+
+    from(sourceSets.main.resources.srcDirs) {
+        exclude 'mods.toml'
+    }
+}
+
+jar.finalizedBy('reobfJar')

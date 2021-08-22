@@ -1,0 +1,18 @@
+[
+  {
+    "modid": "Neintales",
+    "name": "Neintales",
+    "description": "NeintalesAPI",
+    "version": "${version}",
+    "mcversion": "${mcversion}",
+    "url": "qumo.at",
+    "updateUrl": "",
+    "authorList": [
+      "Qumoo"
+    ],
+    "credits": "",
+    "logoFile": "",
+    "screenshots": [],
+    "dependencies": []
+  }
+]
